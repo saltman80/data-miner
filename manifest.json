@@ -1,0 +1,47 @@
+{
+  "manifest_version": 3,
+  "name": "Data Miner",
+  "short_name": "DataMiner",
+  "version": "1.0.0",
+  "description": "Scrape structured data from web pages and export to CSV.",
+  "icons": {
+    "16": "icons/icon16.png",
+    "32": "icons/icon32.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  },
+  "permissions": [
+    "storage",
+    "activeTab",
+    "contextMenus",
+    "scripting",
+    "downloads",
+    "notifications"
+  ],
+  "host_permissions": [
+    "<all_urls>"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "action": {
+    "default_title": "Data Miner",
+    "default_popup": "scrapePopupUI.html"
+  },
+  "options_ui": {
+    "page": "filenameOptionsPage.html",
+    "open_in_tab": true
+  },
+  "content_scripts": [
+    {
+      "id": "data-miner-content",
+      "matches": [
+        "<all_urls>"
+      ],
+      "js": [
+        "scrapeSelectionManager.js"
+      ],
+      "run_at": "document_idle"
+    }
+  ]
+}
