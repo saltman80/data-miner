@@ -1,0 +1,30 @@
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Filename Options</title>
+  <link rel="stylesheet" href="popupOptionsOverlayStyles.css">
+</head>
+<body>
+  <h1>Filename Options</h1>
+  <form id="optionsForm">
+    <div class="form-group">
+      <label for="prefix">File Prefix:</label>
+      <input type="text" id="prefix" name="prefix" placeholder="e.g., data" required>
+    </div>
+    <div class="form-group">
+      <label for="delimiter">Delimiter:</label>
+      <input type="text" id="delimiter" name="delimiter" maxlength="1" placeholder="_" required pattern=".{1}" title="Please enter exactly one character.">
+    </div>
+    <div class="form-group">
+      <label>
+        <input type="checkbox" id="headers" name="headers">
+        Include Headers
+      </label>
+    </div>
+    <button type="submit" id="save">Save</button>
+    <span id="status" class="status" aria-live="polite"></span>
+  </form>
+  <script src="userPreferencesStorage.js"></script>
+</body>
+</html>
