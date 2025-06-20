@@ -1,17 +1,78 @@
+<!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>__MSG_extensionName__</title>
-  <link rel="stylesheet" href="popupOptionsOverlayStyles.css">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Data Miner</title>
+  <style>
+    body {
+      background-color: #1f1f1f;
+      color: #ffffff;
+      font-family: "Segoe UI", sans-serif;
+      padding: 20px;
+      margin: 0;
+      width: 340px;
+    }
+
+    #app {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    h1 {
+      font-size: 20px;
+      margin-bottom: 8px;
+      text-align: center;
+      color: #a275f7;
+    }
+
+    p.description {
+      font-size: 14px;
+      color: #cccccc;
+      margin-bottom: 16px;
+      text-align: center;
+    }
+
+    button {
+      padding: 12px;
+      font-size: 15px;
+      font-weight: 600;
+      background: linear-gradient(135deg, #7bd48c, #a275f7);
+      color: #1f1f1f;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: opacity 0.2s, transform 0.1s;
+    }
+
+    button:hover {
+      opacity: 0.9;
+    }
+
+    button:active {
+      transform: scale(0.98);
+    }
+
+    #status {
+      font-size: 13px;
+      color: #a0a0a0;
+      text-align: center;
+      padding: 6px 0;
+      min-height: 18px;
+    }
+  </style>
 </head>
 <body>
   <div id="app">
-    <button id="autoBtn">__MSG_auto_detect_export__</button>
-    <button id="manualBtn">__MSG_select_and_export__</button>
+    <h1>Data Miner</h1>
+    <p class="description">Easily extract structured data from any web page and export it to CSV for analysis or sharing.</p>
+
+    <button id="autoBtn">🔍 Auto Detect & Export</button>
+    <button id="manualBtn">🖱️ Select Data to Export</button>
     <div id="status" aria-live="polite"></div>
-    <button id="exportBtn">__MSG_export_csv__</button>
-    <button id="cancelBtn">__MSG_cancel_scrape__</button>
+    <button id="exportBtn">📁 Export to CSV</button>
+    <button id="cancelBtn">❌ Cancel Scrape</button>
   </div>
   <script src="popupInteractionHandler.js"></script>
 </body>
