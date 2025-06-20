@@ -97,6 +97,7 @@ let keyListener = null;
 function highlightElement(el) {
   if (!(el instanceof Element)) return;
   const rect = el.getBoundingClientRect();
+  if (!rect.width || !rect.height) return;
   const div = document.createElement('div');
   Object.assign(div.style, {
     position: 'absolute',
@@ -166,14 +167,19 @@ function beginManualSelection() {
   selectionHighlights = [];
 
   function onSelect(el) {
-    if (!(el instanceof Element)) {
+    if (!el || !(el instanceof Element)) {
+      alert('Invalid element selected. Try clicking on a visible element.');
       return;
     }
+
     selectedElements.push(el);
     highlightElement(el);
     safeSendMessage({ type: 'ELEMENT_ADDED', count: selectedElements.length });
     alert('Element added for export');
-    selectorTool.injectOverlay(onSelect);
+
+    setTimeout(() => {
+      selectorTool.injectOverlay(onSelect);
+    }, 100);
   }
 
   keyListener = (e) => {
