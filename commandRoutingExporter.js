@@ -1,3 +1,5 @@
+importScripts('convertJsonToCsv.js');
+
 function notifyUser(message) {
   if (chrome.notifications && chrome.notifications.create) {
     chrome.notifications.create({
