@@ -19,9 +19,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function sendMessage(message) {
     return new Promise((resolve, reject) => {
+      console.log('popup: sending', message);
       chrome.runtime.sendMessage(message, response => {
         if (chrome.runtime.lastError) {
-          reject(chrome.runtime.lastError);
+          console.error('popup: sendMessage error', chrome.runtime.lastError);
+          const msg = chrome.runtime.lastError.message || '';
+          if (msg.includes('Could not establish connection') || msg.includes('Receiving end does not exist')) {
+            reject(new Error('No content script found on this page. Reload and try again.'));
+          } else {
+            reject(chrome.runtime.lastError);
+          }
         } else {
           resolve(response);
         }
@@ -33,6 +40,7 @@ document.addEventListener('DOMContentLoaded', () => {
     try {
       setButtonsEnabled(false);
       updateStatus('Starting auto scrape...');
+      console.log('popup: requesting auto scrape');
       await sendMessage({ type: 'START_SCRAPE', mode: 'auto' });
     } catch (err) {
       updateStatus(err.message || 'Error starting auto scrape', true);
@@ -45,6 +53,7 @@ document.addEventListener('DOMContentLoaded', () => {
     try {
       setButtonsEnabled(false);
       updateStatus('Entering manual selection mode...');
+      console.log('popup: requesting manual scrape');
       await sendMessage({ type: 'START_SCRAPE', mode: 'manual' });
     } catch (err) {
       updateStatus(err.message || 'Error starting manual selection', true);
@@ -57,6 +66,7 @@ document.addEventListener('DOMContentLoaded', () => {
     try {
       setButtonsEnabled(false);
       updateStatus('Exporting CSV...');
+      console.log('popup: export requested');
       await sendMessage({ type: 'EXPORT_CSV' });
       updateStatus('Export initiated.');
     } catch (err) {
@@ -70,6 +80,7 @@ document.addEventListener('DOMContentLoaded', () => {
     try {
       setButtonsEnabled(false);
       updateStatus('Cancelling scrape...');
+      console.log('popup: cancel requested');
       await sendMessage({ type: 'CANCEL_SCRAPE' });
       updateStatus('Scrape cancelled.');
     } catch (err) {
@@ -80,6 +91,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function handleRuntimeMessage(message) {
+    console.log('popup: received runtime message', message);
     switch (message.type) {
       case 'SCRAPE_PROGRESS':
         updateStatus(`Progress: ${message.progress}%`);
