@@ -8,6 +8,9 @@ const sanitizeData = (input) => {
     return input.map(sanitizeData);
   }
   if (typeof Node !== 'undefined' && input instanceof Node) {
+    if (input.tagName && input.tagName.toUpperCase() === 'IMG') {
+      return '';
+    }
     return input.textContent;
   }
   if (type === 'object') {
@@ -38,10 +41,10 @@ function extractTableData(table) {
 
 function autoDetectHeadings() {
   const url = window.location.href || document.URL;
-  const headings = Array.from(document.querySelectorAll('h1'));
+  const headings = Array.from(document.querySelectorAll('h1, h2'));
   const data = headings.map(h => ({ url, text: h.textContent.trim() }));
   if (!data.length) {
-    throw new Error('No H1 elements found on page');
+    throw new Error('No H1 or H2 elements found on page');
   }
   return data;
 }
@@ -51,9 +54,9 @@ function scrapeDOMData(selection) {
   if (Array.isArray(selection) || selection instanceof NodeList) {
     elem = selection[0];
   }
-  if (!elem) throw new Error('Invalid selection');
-  if (elem.tagName && elem.tagName.toLowerCase() === 'table') {
-    return extractTableData(elem);
+  if (!elem || !(elem instanceof Element)) throw new Error('Invalid selection');
+  if (!['H1', 'H2'].includes(elem.tagName)) {
+    throw new Error('Only H1 and H2 elements can be scraped');
   }
   return { text: elem.textContent.trim() };
 }
@@ -142,7 +145,7 @@ function finalizeManualSelection() {
     return;
   }
   const data = selectedElements
-    .filter(el => el instanceof Element)
+    .filter(el => el instanceof Element && ['H1', 'H2'].includes(el.tagName))
     .map(el => ({ url, text: el.textContent.trim() }));
   clearHighlights();
   selectedElements = [];
@@ -163,8 +166,8 @@ function beginManualSelection() {
     }
 
     const tag = el.tagName && el.tagName.toLowerCase();
-    if (tag !== 'h1') {
-      alert('Please select only H1 headings.');
+    if (tag !== 'h1' && tag !== 'h2') {
+      alert('Please select only H1 or H2 headings.');
       return;
     }
 
