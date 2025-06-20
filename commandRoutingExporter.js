@@ -42,6 +42,36 @@ function startDownload(csvContent) {
 }
 
 function dispatchScrapeToContentScript(mode, tabId, cb) {
+  function injectAndSend(id, message, attempted) {
+    chrome.tabs.sendMessage(id, message, response => {
+      if (chrome.runtime.lastError) {
+        if (!attempted) {
+          // try injecting content scripts then resend once
+          chrome.scripting.executeScript(
+            {
+              target: { tabId: id },
+              files: ['injectOverlaySelector.js', 'scrapeSelectionManager.js']
+            },
+            () => {
+              if (chrome.runtime.lastError) {
+                console.error('Failed to inject content scripts', chrome.runtime.lastError);
+                if (cb) cb({ success: false, error: 'Injection failed' });
+              } else {
+                injectAndSend(id, message, true);
+              }
+            }
+          );
+        } else {
+          console.error('Failed to send message to tab', chrome.runtime.lastError);
+          if (cb) cb({ success: false, error: 'Content script not found in tab.' });
+        }
+      } else {
+        console.log('background: sent', message, 'to tab', id);
+        if (cb) cb({ success: true, response });
+      }
+    });
+  }
+
   function sendMessageToTab(id) {
     let message;
     if (mode === 'cancel') {
@@ -51,15 +81,7 @@ function dispatchScrapeToContentScript(mode, tabId, cb) {
     } else {
       message = { type: 'PERFORM_SCRAPE', mode };
     }
-    chrome.tabs.sendMessage(id, message, response => {
-      if (chrome.runtime.lastError) {
-        console.error('Failed to send message to tab', chrome.runtime.lastError);
-        if (cb) cb({ success: false, error: 'Content script not found in tab.' });
-      } else {
-        console.log('background: sent', message, 'to tab', id);
-        if (cb) cb({ success: true, response });
-      }
-    });
+    injectAndSend(id, message, false);
   }
   if (tabId) {
     sendMessageToTab(tabId);
