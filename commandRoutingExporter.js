@@ -41,9 +41,18 @@ function startDownload(csvContent) {
   }
 }
 
-function dispatchScrapeToContentScript(mode, tabId) {
+function dispatchScrapeToContentScript(mode, tabId, cb) {
   function sendMessageToTab(id) {
-    chrome.tabs.sendMessage(id, { type: 'PERFORM_SCRAPE', mode: mode });
+    const message = mode === 'cancel' ? { type: 'CANCEL_SCRAPE' } : { type: 'PERFORM_SCRAPE', mode };
+    chrome.tabs.sendMessage(id, message, response => {
+      if (chrome.runtime.lastError) {
+        console.error('Failed to send message to tab', chrome.runtime.lastError);
+        if (cb) cb({ success: false, error: 'Content script not found in tab.' });
+      } else {
+        console.log('background: sent', message, 'to tab', id);
+        if (cb) cb({ success: true, response });
+      }
+    });
   }
   if (tabId) {
     sendMessageToTab(tabId);
@@ -54,6 +63,7 @@ function dispatchScrapeToContentScript(mode, tabId) {
       } else {
         console.error('No active tab found to perform scrape.');
         notifyUser('No active tab found to perform scrape.');
+        if (cb) cb({ success: false, error: 'No active tab.' });
       }
     });
   }
@@ -75,10 +85,21 @@ chrome.runtime.onInstalled.addListener(function() {
 
 chrome.contextMenus.onClicked.addListener(handleContextMenuClick);
 
-chrome.runtime.onMessage.addListener(function(msg, sender) {
+chrome.runtime.onMessage.addListener(function(msg, sender, sendResponse) {
   if (msg && msg.type === 'START_SCRAPE') {
-    dispatchScrapeToContentScript(msg.mode);
+    console.log('background: START_SCRAPE received', msg);
+    dispatchScrapeToContentScript(msg.mode, undefined, result => {
+      sendResponse(result);
+    });
+    return true;
+  } else if (msg && msg.type === 'CANCEL_SCRAPE') {
+    console.log('background: CANCEL_SCRAPE received');
+    dispatchScrapeToContentScript('cancel', undefined, result => {
+      sendResponse(result);
+    });
+    return true;
   } else if (msg && msg.type === 'SCRAPE_RESULT') {
+    console.log('background: SCRAPE_RESULT received');
     if (msg.data) {
       try {
         let csvContent;
@@ -98,3 +119,4 @@ chrome.runtime.onMessage.addListener(function(msg, sender) {
     }
   }
 });
+

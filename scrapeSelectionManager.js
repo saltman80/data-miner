@@ -55,6 +55,7 @@ function scrapeDOMData(selection) {
 }
 
 const safeSendMessage = (message) => {
+  console.log('content: sending', message);
   chrome.runtime.sendMessage(message, () => {
     if (chrome.runtime.lastError) {
       console.error('chrome.runtime.sendMessage error:', chrome.runtime.lastError);
@@ -72,8 +73,18 @@ const processScrape = (scrapeFn) => {
   }
 };
 
-chrome.runtime.onMessage.addListener((msg) => {
+chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
+  if (msg.type === 'CANCEL_SCRAPE') {
+    console.log('content: CANCEL_SCRAPE received');
+    if (selectorTool.removeOverlay) {
+      selectorTool.removeOverlay();
+    }
+    sendResponse({ canceled: true });
+    return;
+  }
+
   if (msg.type !== 'PERFORM_SCRAPE') return;
+  console.log('content: PERFORM_SCRAPE received', msg);
   if (msg.mode === 'auto') {
     processScrape(autoDetectTables);
   } else {
@@ -86,4 +97,5 @@ chrome.runtime.onMessage.addListener((msg) => {
       processScrape(() => scrapeDOMData(selection));
     });
   }
+  sendResponse({ started: true });
 });
