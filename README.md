@@ -6,10 +6,10 @@ Data Miner is a Chrome extension that helps you scrape structured data from web 
 
 1. Load the extension in Chrome through the Extensions page in developer mode.
 2. Click the extension icon to open the popup.
-3. Choose **Auto Detect & Export** to automatically capture all `<h1>` elements, or select **Select Data to Export** to manually pick elements.
+3. Choose **Auto Detect & Export** to automatically capture all `<h1>` and `<h2>` elements, or select **Select Data to Export** to manually pick elements.
 4. When manual selection mode is active:
    - Focus returns to the page.
-   - Click each `<h1>` you want to export. After each click you'll see a short alert confirming the element was added.
+   - Click each `<h1>` or `<h2>` you want to export. After each click you'll see a short alert confirming the element was added.
    - Press **Enter** while still focused on the page to finalize your selection and start the CSV download.
    - Press **Escape** if you want to cancel.
 
