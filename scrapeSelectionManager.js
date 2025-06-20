@@ -37,9 +37,23 @@ function extractTableData(table) {
 }
 
 function autoDetectTables() {
+  const data = [];
+  const url = window.location.href || document.URL;
+  const header = document.querySelector('h1');
+  if (header) {
+    data.push({ url, text: header.textContent.trim() });
+  }
+
   const table = document.querySelector('table');
-  if (!table) throw new Error('No table found on page');
-  return extractTableData(table);
+  if (table) {
+    data.push(...extractTableData(table));
+  }
+
+  if (!data.length) {
+    throw new Error('No table found on page');
+  }
+
+  return data;
 }
 
 function scrapeDOMData(selection) {
@@ -81,6 +95,7 @@ let selectionHighlights = [];
 let keyListener = null;
 
 function highlightElement(el) {
+  if (!(el instanceof Element)) return;
   const rect = el.getBoundingClientRect();
   const div = document.createElement('div');
   Object.assign(div.style, {
@@ -135,7 +150,9 @@ function finalizeManualSelection() {
     safeSendMessage({ type: 'SCRAPE_ERROR', error: 'No elements selected.' });
     return;
   }
-  const data = selectedElements.map(el => ({ url, text: el.textContent.trim() }));
+  const data = selectedElements
+    .filter(el => el instanceof Element)
+    .map(el => ({ url, text: el.textContent.trim() }));
   clearHighlights();
   selectedElements = [];
   manualSelecting = false;
@@ -149,13 +166,14 @@ function beginManualSelection() {
   selectionHighlights = [];
 
   function onSelect(el) {
-    if (el) {
-      selectedElements.push(el);
-      highlightElement(el);
-      safeSendMessage({ type: 'ELEMENT_ADDED', count: selectedElements.length });
-      alert('Element added for export');
-      selectorTool.injectOverlay(onSelect);
+    if (!(el instanceof Element)) {
+      return;
     }
+    selectedElements.push(el);
+    highlightElement(el);
+    safeSendMessage({ type: 'ELEMENT_ADDED', count: selectedElements.length });
+    alert('Element added for export');
+    selectorTool.injectOverlay(onSelect);
   }
 
   keyListener = (e) => {
