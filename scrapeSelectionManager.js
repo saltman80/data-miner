@@ -38,10 +38,10 @@ function extractTableData(table) {
 
 function autoDetectHeadings() {
   const url = window.location.href || document.URL;
-  const headings = Array.from(document.querySelectorAll('h1, h2'));
+  const headings = Array.from(document.querySelectorAll('h1'));
   const data = headings.map(h => ({ url, text: h.textContent.trim() }));
   if (!data.length) {
-    throw new Error('No H1 or H2 elements found on page');
+    throw new Error('No H1 elements found on page');
   }
   return data;
 }
@@ -163,8 +163,8 @@ function beginManualSelection() {
     }
 
     const tag = el.tagName && el.tagName.toLowerCase();
-    if (tag !== 'h1' && tag !== 'h2') {
-      alert('Please select only H1 or H2 headings.');
+    if (tag !== 'h1') {
+      alert('Please select only H1 headings.');
       return;
     }
 
