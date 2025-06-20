@@ -36,23 +36,13 @@ function extractTableData(table) {
   });
 }
 
-function autoDetectTables() {
-  const data = [];
+function autoDetectHeadings() {
   const url = window.location.href || document.URL;
-  const header = document.querySelector('h1');
-  if (header) {
-    data.push({ url, text: header.textContent.trim() });
-  }
-
-  const table = document.querySelector('table');
-  if (table) {
-    data.push(...extractTableData(table));
-  }
-
+  const headings = Array.from(document.querySelectorAll('h1, h2'));
+  const data = headings.map(h => ({ url, text: h.textContent.trim() }));
   if (!data.length) {
-    throw new Error('No table found on page');
+    throw new Error('No H1 or H2 elements found on page');
   }
-
   return data;
 }
 
@@ -151,11 +141,9 @@ function finalizeManualSelection() {
     safeSendMessage({ type: 'SCRAPE_ERROR', error: 'No elements selected.' });
     return;
   }
-  const text = selectedElements
+  const data = selectedElements
     .filter(el => el instanceof Element)
-    .map(el => el.textContent.trim())
-    .join(' ');
-  const data = [{ url, text }];
+    .map(el => ({ url, text: el.textContent.trim() }));
   clearHighlights();
   selectedElements = [];
   manualSelecting = false;
@@ -224,7 +212,7 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
   if (msg.type !== 'PERFORM_SCRAPE') return;
   console.log('content: PERFORM_SCRAPE received', msg);
   if (msg.mode === 'auto') {
-    processScrape(autoDetectTables);
+    processScrape(autoDetectHeadings);
   } else if (msg.mode === 'manual') {
     beginManualSelection();
   } else {
