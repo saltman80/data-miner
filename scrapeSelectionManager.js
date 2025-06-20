@@ -151,9 +151,11 @@ function finalizeManualSelection() {
     safeSendMessage({ type: 'SCRAPE_ERROR', error: 'No elements selected.' });
     return;
   }
-  const data = selectedElements
+  const text = selectedElements
     .filter(el => el instanceof Element)
-    .map(el => ({ url, text: el.textContent.trim() }));
+    .map(el => el.textContent.trim())
+    .join(' ');
+  const data = [{ url, text }];
   clearHighlights();
   selectedElements = [];
   manualSelecting = false;
@@ -172,6 +174,12 @@ function beginManualSelection() {
       return;
     }
 
+    const tag = el.tagName && el.tagName.toLowerCase();
+    if (tag !== 'h1' && tag !== 'h2') {
+      alert('Please select only H1 or H2 headings.');
+      return;
+    }
+
     selectedElements.push(el);
     highlightElement(el);
     safeSendMessage({ type: 'ELEMENT_ADDED', count: selectedElements.length });
@@ -179,7 +187,7 @@ function beginManualSelection() {
 
     setTimeout(() => {
       selectorTool.injectOverlay(onSelect);
-    }, 100);
+    }, 300);
   }
 
   keyListener = (e) => {

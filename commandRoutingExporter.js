@@ -154,6 +154,8 @@ chrome.runtime.onMessage.addListener(function(msg, sender, sendResponse) {
       console.error('SCRAPE_RESULT received with no data.');
       notifyUser('No data received for export.');
     }
+    sendResponse({ ok: true });
+    return true;
   } else if (
     msg &&
     sender &&
@@ -162,6 +164,8 @@ chrome.runtime.onMessage.addListener(function(msg, sender, sendResponse) {
   ) {
     // Forward messages from content script to any extension pages (e.g., popup)
     chrome.runtime.sendMessage(msg);
+    sendResponse({ ok: true });
+    return true;
   }
 });
 
