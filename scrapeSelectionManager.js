@@ -58,7 +58,9 @@ const safeSendMessage = (message) => {
   console.log('content: sending', message);
   chrome.runtime.sendMessage(message, () => {
     if (chrome.runtime.lastError) {
-      console.error('chrome.runtime.sendMessage error:', chrome.runtime.lastError);
+      const errMsg = chrome.runtime.lastError && chrome.runtime.lastError.message ?
+        chrome.runtime.lastError.message : chrome.runtime.lastError;
+      console.error('chrome.runtime.sendMessage error:', errMsg);
     }
   });
 };
@@ -150,6 +152,8 @@ function beginManualSelection() {
     if (el) {
       selectedElements.push(el);
       highlightElement(el);
+      safeSendMessage({ type: 'ELEMENT_ADDED', count: selectedElements.length });
+      alert(`Element added to export list (#${selectedElements.length}).`);
       selectorTool.injectOverlay(onSelect);
     }
   }
