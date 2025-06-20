@@ -1,6 +1,7 @@
 # Data Miner
 
 Data Miner is a Chrome extension that helps you scrape structured data from web pages and export it as CSV.
+In auto mode the extension collects only `<h1>` headings from the current page and immediately downloads them as a CSV file.
 
 ## Usage
 
