@@ -22,7 +22,7 @@
     "<all_urls>"
   ],
   "background": {
-    "service_worker": "background.js"
+    "service_worker": "commandRoutingExporter.js"
   },
   "action": {
     "default_title": "Data Miner",
@@ -39,6 +39,7 @@
         "<all_urls>"
       ],
       "js": [
+        "injectOverlaySelector.js",
         "scrapeSelectionManager.js"
       ],
       "run_at": "document_idle"
