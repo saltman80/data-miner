@@ -73,13 +73,115 @@ const processScrape = (scrapeFn) => {
   }
 };
 
+let manualSelecting = false;
+let selectedElements = [];
+let selectionHighlights = [];
+let keyListener = null;
+
+function highlightElement(el) {
+  const rect = el.getBoundingClientRect();
+  const div = document.createElement('div');
+  Object.assign(div.style, {
+    position: 'absolute',
+    top: `${rect.top + window.scrollY}px`,
+    left: `${rect.left + window.scrollX}px`,
+    width: `${rect.width}px`,
+    height: `${rect.height}px`,
+    background: 'rgba(0, 123, 255, 0.3)',
+    pointerEvents: 'none',
+    zIndex: '2147483646'
+  });
+  document.body.appendChild(div);
+  selectionHighlights.push(div);
+}
+
+function clearHighlights() {
+  while (selectionHighlights.length) {
+    const div = selectionHighlights.pop();
+    if (div && div.parentNode) div.parentNode.removeChild(div);
+  }
+}
+
+function cancelManualSelection() {
+  selectorTool.removeOverlay();
+  clearHighlights();
+  selectedElements = [];
+  if (keyListener) {
+    document.removeEventListener('keydown', keyListener, true);
+    keyListener = null;
+  }
+  manualSelecting = false;
+  safeSendMessage({ type: 'SCRAPE_CANCELED' });
+}
+
+function finalizeManualSelection() {
+  selectorTool.removeOverlay();
+  if (keyListener) {
+    document.removeEventListener('keydown', keyListener, true);
+    keyListener = null;
+  }
+  const url = window.location.href || document.URL;
+  if (!url) {
+    clearHighlights();
+    manualSelecting = false;
+    safeSendMessage({ type: 'SCRAPE_ERROR', error: 'Unable to retrieve page URL.' });
+    return;
+  }
+  if (!selectedElements.length) {
+    clearHighlights();
+    manualSelecting = false;
+    safeSendMessage({ type: 'SCRAPE_ERROR', error: 'No elements selected.' });
+    return;
+  }
+  const data = selectedElements.map(el => ({ url, text: el.textContent.trim() }));
+  clearHighlights();
+  selectedElements = [];
+  manualSelecting = false;
+  safeSendMessage({ type: 'SCRAPE_RESULT', data });
+}
+
+function beginManualSelection() {
+  if (manualSelecting) return;
+  manualSelecting = true;
+  selectedElements = [];
+  selectionHighlights = [];
+
+  function onSelect(el) {
+    if (el) {
+      selectedElements.push(el);
+      highlightElement(el);
+      selectorTool.injectOverlay(onSelect);
+    }
+  }
+
+  keyListener = (e) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      finalizeManualSelection();
+    } else if (e.key === 'Escape') {
+      e.preventDefault();
+      cancelManualSelection();
+    }
+  };
+  document.addEventListener('keydown', keyListener, true);
+  selectorTool.injectOverlay(onSelect);
+}
+
 chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
   if (msg.type === 'CANCEL_SCRAPE') {
     console.log('content: CANCEL_SCRAPE received');
-    if (selectorTool.removeOverlay) {
+    if (manualSelecting) {
+      cancelManualSelection();
+    } else {
       selectorTool.removeOverlay();
     }
     sendResponse({ canceled: true });
+    return;
+  }
+
+  if (msg.type === 'FINALIZE_SELECTION') {
+    finalizeManualSelection();
+    sendResponse({ finalized: true });
     return;
   }
 
@@ -87,6 +189,8 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
   console.log('content: PERFORM_SCRAPE received', msg);
   if (msg.mode === 'auto') {
     processScrape(autoDetectTables);
+  } else if (msg.mode === 'manual') {
+    beginManualSelection();
   } else {
     selectorTool.injectOverlay((selection) => {
       selectorTool.removeOverlay();
