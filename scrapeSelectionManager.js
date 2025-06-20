@@ -22,6 +22,38 @@ const sanitizeData = (input) => {
   return String(input);
 };
 
+function extractTableData(table) {
+  const rows = Array.from(table.querySelectorAll('tr'));
+  if (!rows.length) return [];
+  const headers = Array.from(rows.shift().cells).map(c => c.textContent.trim() || '');
+  return rows.map(row => {
+    const obj = {};
+    const cells = Array.from(row.cells);
+    headers.forEach((h, i) => {
+      obj[h || `col${i+1}`] = cells[i] ? cells[i].textContent.trim() : '';
+    });
+    return obj;
+  });
+}
+
+function autoDetectTables() {
+  const table = document.querySelector('table');
+  if (!table) throw new Error('No table found on page');
+  return extractTableData(table);
+}
+
+function scrapeDOMData(selection) {
+  let elem = selection;
+  if (Array.isArray(selection) || selection instanceof NodeList) {
+    elem = selection[0];
+  }
+  if (!elem) throw new Error('Invalid selection');
+  if (elem.tagName && elem.tagName.toLowerCase() === 'table') {
+    return extractTableData(elem);
+  }
+  return { text: elem.textContent.trim() };
+}
+
 const safeSendMessage = (message) => {
   chrome.runtime.sendMessage(message, () => {
     if (chrome.runtime.lastError) {
