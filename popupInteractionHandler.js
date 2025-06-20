@@ -19,13 +19,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function sendMessage(message) {
     return new Promise((resolve, reject) => {
-      console.log('popup: sending', message);
       chrome.runtime.sendMessage(message, response => {
         if (chrome.runtime.lastError) {
-          console.error('popup: sendMessage error', chrome.runtime.lastError);
           const msg = chrome.runtime.lastError.message || '';
-          if (msg.includes('Could not establish connection') || msg.includes('Receiving end does not exist')) {
-            reject(new Error('No content script found on this page. Reload and try again.'));
+          if (msg.includes('Receiving end does not exist')) {
+            reject(new Error('No active scrape session. Try reloading the page.'));
           } else {
             reject(chrome.runtime.lastError);
           }

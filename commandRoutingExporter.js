@@ -136,23 +136,22 @@ chrome.runtime.onMessage.addListener(function(msg, sender, sendResponse) {
     return true;
   } else if (msg && msg.type === 'SCRAPE_RESULT') {
     console.log('background: SCRAPE_RESULT received');
-    if (msg.data) {
-      try {
-        let csvContent;
-        if (typeof convertJsonToCsv === 'function') {
-          csvContent = convertJsonToCsv(msg.data, { headers: ['url', 'text'] });
-        } else {
-          csvContent = msg.data;
-        }
-        startDownload(csvContent);
-      } catch (error) {
-        console.error('Error converting data to CSV:', error);
-        notifyUser('Error converting data to CSV: ' + error.message);
-      }
-    } else {
-      console.error('SCRAPE_RESULT received with no data.');
-      notifyUser('No data received for export.');
+
+    if (!Array.isArray(msg.data) || !msg.data.every(d => typeof d.url === 'string' && typeof d.text === 'string')) {
+      console.error('Invalid SCRAPE_RESULT data:', msg.data);
+      notifyUser('Export failed: Data format invalid.');
+      sendResponse({ ok: false });
+      return true;
     }
+
+    try {
+      const csvContent = convertJsonToCsv(msg.data, { headers: ['url', 'text'] });
+      startDownload(csvContent);
+    } catch (error) {
+      console.error('Error converting data to CSV:', error);
+      notifyUser('Export failed: CSV conversion error.');
+    }
+
     sendResponse({ ok: true });
     return true;
   } else if (
