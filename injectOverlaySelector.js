@@ -5,6 +5,7 @@ let currentCallback = null;
 
 function updateOverlay() {
   requested = false;
+  if (!overlay) return;
   let target = lastTarget;
   if (!(target instanceof Element)) {
     target = target && target.parentElement;
