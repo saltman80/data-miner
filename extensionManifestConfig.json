@@ -3,11 +3,6 @@
   "name": "Smart Data Scraper",
   "description": "Scrapes structured data from web pages and exports it to CSV via popup or context menu.",
   "version": "1.0.0",
-  "icons": {
-    "16": "icons/icon16.png",
-    "48": "icons/icon48.png",
-    "128": "icons/icon128.png"
-  },
   "permissions": [
     "activeTab",
     "downloads",
@@ -23,12 +18,7 @@
   },
   "action": {
     "default_popup": "scrapePopupUI.html",
-    "default_title": "Smart Data Scraper",
-    "default_icon": {
-      "16": "icons/icon16.png",
-      "48": "icons/icon48.png",
-      "128": "icons/icon128.png"
-    }
+    "default_title": "Smart Data Scraper"
   },
   "options_ui": {
     "page": "filenameOptionsPage.html",

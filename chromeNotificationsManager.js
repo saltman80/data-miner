@@ -7,7 +7,8 @@
     root.chromeNotificationsManager = factory();
   }
 }(typeof self !== 'undefined' ? self : this, function() {
-  const defaultIconUrl = chrome.runtime.getURL('icons/icon48.png');
+  // Default icon removed to avoid referencing missing assets
+  const defaultIconUrl = null;
   const clickListeners = [];
   const buttonClickListeners = [];
   const validTypes = new Set(['basic', 'image', 'list', 'progress']);
@@ -44,12 +45,18 @@
     }
 
     const notifId = id || generateNotificationId();
-    const options = { type, title, message, iconUrl };
+    const options = { type, title, message };
+    if (iconUrl || defaultIconUrl) {
+      options.iconUrl = iconUrl || defaultIconUrl;
+    }
     if (buttons.length) {
-      options.buttons = buttons.map(btn => ({
-        title: btn.title,
-        iconUrl: btn.iconUrl || defaultIconUrl
-      }));
+      options.buttons = buttons.map(btn => {
+        const btnOpts = { title: btn.title };
+        if (btn.iconUrl || defaultIconUrl) {
+          btnOpts.iconUrl = btn.iconUrl || defaultIconUrl;
+        }
+        return btnOpts;
+      });
     }
 
     return new Promise((resolve, reject) => {
