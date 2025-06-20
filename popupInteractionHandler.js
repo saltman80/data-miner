@@ -100,5 +100,3 @@ document.addEventListener('DOMContentLoaded', () => {
 
   chrome.runtime.onMessage.addListener(handleRuntimeMessage);
 });
-
-export { updateStatus, setButtonsEnabled, sendMessage, handleAutoClick, handleManualClick, handleExportClick, handleCancelClick, handleRuntimeMessage };
