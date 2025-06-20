@@ -43,7 +43,14 @@ function startDownload(csvContent) {
 
 function dispatchScrapeToContentScript(mode, tabId, cb) {
   function sendMessageToTab(id) {
-    const message = mode === 'cancel' ? { type: 'CANCEL_SCRAPE' } : { type: 'PERFORM_SCRAPE', mode };
+    let message;
+    if (mode === 'cancel') {
+      message = { type: 'CANCEL_SCRAPE' };
+    } else if (mode === 'finalize') {
+      message = { type: 'FINALIZE_SELECTION' };
+    } else {
+      message = { type: 'PERFORM_SCRAPE', mode };
+    }
     chrome.tabs.sendMessage(id, message, response => {
       if (chrome.runtime.lastError) {
         console.error('Failed to send message to tab', chrome.runtime.lastError);
@@ -98,13 +105,19 @@ chrome.runtime.onMessage.addListener(function(msg, sender, sendResponse) {
       sendResponse(result);
     });
     return true;
+  } else if (msg && msg.type === 'EXPORT_CSV') {
+    console.log('background: EXPORT_CSV received');
+    dispatchScrapeToContentScript('finalize', undefined, result => {
+      sendResponse(result);
+    });
+    return true;
   } else if (msg && msg.type === 'SCRAPE_RESULT') {
     console.log('background: SCRAPE_RESULT received');
     if (msg.data) {
       try {
         let csvContent;
         if (typeof convertJsonToCsv === 'function') {
-          csvContent = convertJsonToCsv(msg.data);
+          csvContent = convertJsonToCsv(msg.data, { headers: ['url', 'text'] });
         } else {
           csvContent = msg.data;
         }
