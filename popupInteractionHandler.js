@@ -102,6 +102,9 @@ document.addEventListener('DOMContentLoaded', () => {
       case 'SCRAPE_ERROR':
         updateStatus(`Error: ${message.error}`, true);
         break;
+      case 'ELEMENT_ADDED':
+        updateStatus(`Added element #${message.count} for export.`);
+        break;
     }
   }
 
