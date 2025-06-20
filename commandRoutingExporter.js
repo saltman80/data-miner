@@ -4,7 +4,6 @@ function notifyUser(message) {
   if (chrome.notifications && chrome.notifications.create) {
     chrome.notifications.create({
       type: 'basic',
-      iconUrl: 'icons/icon48.png',
       title: 'Data Miner',
       message: message
     });
