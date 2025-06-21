@@ -20,7 +20,12 @@ function startDownload(csvContent) {
     return;
   }
 
-  if (!URL || typeof URL.createObjectURL !== 'function') {
+  const urlSource =
+    (typeof self !== 'undefined' && self.URL) ||
+    (typeof window !== 'undefined' && window.URL) ||
+    (typeof globalThis !== 'undefined' && globalThis.URL);
+
+  if (typeof urlSource?.createObjectURL !== 'function') {
     console.error('URL.createObjectURL is not available.');
     notifyUser('Export failed: Unable to create download link.');
     return;
@@ -29,7 +34,7 @@ function startDownload(csvContent) {
   let blob, url;
   try {
     blob = new Blob([csvContent], { type: 'text/csv' });
-    url = URL.createObjectURL(blob);
+    url = urlSource.createObjectURL(blob);
   } catch (error) {
     console.error('Error preparing CSV blob:', error);
     notifyUser('Export failed while preparing file.');
@@ -49,17 +54,17 @@ function startDownload(csvContent) {
         } else {
           console.log('Download started, id:', downloadId);
         }
-        URL.revokeObjectURL(url);
+        urlSource.revokeObjectURL(url);
       });
     } catch (error) {
       console.error('Error initiating download:', error);
       notifyUser('Error initiating download: ' + error.message);
-      URL.revokeObjectURL(url);
+      urlSource.revokeObjectURL(url);
     }
   } else {
     console.error('chrome.downloads API is not available.');
     notifyUser('Download API not available in this context.');
-    URL.revokeObjectURL(url);
+    urlSource.revokeObjectURL(url);
   }
 }
 
