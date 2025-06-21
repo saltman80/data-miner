@@ -13,8 +13,28 @@ function notifyUser(message) {
 }
 
 function startDownload(csvContent) {
-  const blob = new Blob([csvContent], { type: 'text/csv' });
-  const url = URL.createObjectURL(blob);
+  if (typeof csvContent !== 'string') {
+    console.error('Invalid CSV content passed to startDownload:', csvContent);
+    notifyUser('Export failed: Invalid CSV content.');
+    return;
+  }
+
+  if (!URL || typeof URL.createObjectURL !== 'function') {
+    console.error('URL.createObjectURL is not available.');
+    notifyUser('Export failed: Unable to create download link.');
+    return;
+  }
+
+  let blob, url;
+  try {
+    blob = new Blob([csvContent], { type: 'text/csv' });
+    url = URL.createObjectURL(blob);
+  } catch (error) {
+    console.error('Error preparing CSV blob:', error);
+    notifyUser('Export failed while preparing file.');
+    return;
+  }
+
   if (chrome && chrome.downloads && chrome.downloads.download) {
     try {
       chrome.downloads.download({
@@ -137,19 +157,20 @@ chrome.runtime.onMessage.addListener(function(msg, sender, sendResponse) {
   } else if (msg && msg.type === 'SCRAPE_RESULT') {
     console.log('background: SCRAPE_RESULT received');
 
-    if (!Array.isArray(msg.data) || !msg.data.every(d => typeof d.url === 'string' && typeof d.text === 'string')) {
-      console.error('Invalid SCRAPE_RESULT data:', msg.data);
-      notifyUser('Export failed: Data format invalid.');
+    if (!Array.isArray(msg.data) || !msg.data.every(item =>
+      typeof item.url === 'string' && typeof item.text === 'string')) {
+      console.error('Invalid scrape data format:', msg.data);
+      notifyUser('Export failed: Invalid data format.');
       sendResponse({ ok: false });
       return true;
     }
 
     try {
       const csvContent = convertJsonToCsv(msg.data, { headers: ['url', 'text'] });
-      startDownload(csvContent);
+      startDownload(csvContent); // must ONLY be called here
     } catch (error) {
       console.error('Error converting data to CSV:', error);
-      notifyUser('Export failed: CSV conversion error.');
+      notifyUser('Export failed during CSV conversion.');
     }
 
     sendResponse({ ok: true });
