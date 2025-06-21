@@ -20,51 +20,38 @@ function startDownload(csvContent) {
     return;
   }
 
-  const urlSource =
-    (typeof self !== 'undefined' && self.URL) ||
-    (typeof window !== 'undefined' && window.URL) ||
-    (typeof globalThis !== 'undefined' && globalThis.URL);
+  const blob = new Blob([csvContent], { type: 'text/csv' });
+  let url;
 
-  if (typeof urlSource?.createObjectURL !== 'function') {
-    console.error('URL.createObjectURL is not available.');
-    notifyUser('Export failed: Unable to create download link.');
-    return;
-  }
-
-  let blob, url;
   try {
-    blob = new Blob([csvContent], { type: 'text/csv' });
-    url = urlSource.createObjectURL(blob);
+    url = URL.createObjectURL(blob);
   } catch (error) {
-    console.error('Error preparing CSV blob:', error);
-    notifyUser('Export failed while preparing file.');
+    console.error('Error creating object URL:', error);
+    notifyUser('Export failed: createObjectURL failed.');
     return;
   }
 
-  if (chrome && chrome.downloads && chrome.downloads.download) {
-    try {
-      chrome.downloads.download({
+  if (chrome?.downloads?.download) {
+    chrome.downloads.download(
+      {
         url: url,
         filename: `export_${Date.now()}.csv`,
         saveAs: true
-      }, function(downloadId) {
+      },
+      function(downloadId) {
         if (chrome.runtime.lastError) {
           console.error('Download failed:', chrome.runtime.lastError);
           notifyUser('Download failed: ' + chrome.runtime.lastError.message);
         } else {
           console.log('Download started, id:', downloadId);
         }
-        urlSource.revokeObjectURL(url);
-      });
-    } catch (error) {
-      console.error('Error initiating download:', error);
-      notifyUser('Error initiating download: ' + error.message);
-      urlSource.revokeObjectURL(url);
-    }
+        URL.revokeObjectURL(url);
+      }
+    );
   } else {
     console.error('chrome.downloads API is not available.');
     notifyUser('Download API not available in this context.');
-    urlSource.revokeObjectURL(url);
+    URL.revokeObjectURL(url);
   }
 }
 
