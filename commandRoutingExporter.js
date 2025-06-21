@@ -82,6 +82,7 @@ function dispatchScrapeToContentScript(mode, tabId, cb) {
             () => {
               if (chrome.runtime.lastError) {
                 console.error('Failed to inject content scripts', chrome.runtime.lastError);
+                notifyUser('Failed to inject content scripts. This page may not allow scripts.');
                 if (cb) cb({ success: false, error: 'Injection failed' });
               } else {
                 injectAndSend(id, message, true);
@@ -90,6 +91,7 @@ function dispatchScrapeToContentScript(mode, tabId, cb) {
           );
         } else {
           console.error('Failed to send message to tab', chrome.runtime.lastError);
+          notifyUser('Unable to communicate with page. Content script not found.');
           if (cb) cb({ success: false, error: 'Content script not found in tab.' });
         }
       } else {

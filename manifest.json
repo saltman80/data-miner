@@ -30,7 +30,8 @@
     {
       "id": "data-miner-content",
       "matches": [
-        "<all_urls>"
+        "https://*/*",
+        "http://*/*"
       ],
       "js": [
         "injectOverlaySelector.js",
