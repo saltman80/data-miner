@@ -176,7 +176,9 @@ function beginManualSelection() {
     safeSendMessage({ type: 'ELEMENT_ADDED', count: selectedElements.length });
 
     setTimeout(() => {
-      selectorTool.injectOverlay(onSelect);
+      if (manualSelecting) {
+        selectorTool.injectOverlay(onSelect);
+      }
     }, 300);
   }
 
