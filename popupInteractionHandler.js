@@ -10,7 +10,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!exportBtn) return;
     if (manualModeActive) {
       exportBtn.disabled = true;
-      exportBtn.textContent = 'Press Enter to Export';
+      exportBtn.textContent = 'Click a heading to Export';
     } else {
       exportBtn.disabled = false;
       exportBtn.textContent = 'Export to CSV';
@@ -70,7 +70,7 @@ document.addEventListener('DOMContentLoaded', () => {
       await sendMessage({ type: 'START_SCRAPE', mode: 'manual' });
       manualModeActive = true;
       updateExportButton();
-      updateStatus('Manual mode: select headings then press Enter on the page.');
+      updateStatus('Manual mode: click a heading on the page to export.');
     } catch (err) {
       updateStatus(err.message || 'Error starting manual selection', true);
     } finally {
@@ -80,7 +80,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   async function handleExportClick() {
     if (manualModeActive) {
-      updateStatus('Press Enter on the page to export.', true);
+      updateStatus('Click a heading on the page to export.', true);
       return;
     }
     try {
@@ -128,6 +128,11 @@ document.addEventListener('DOMContentLoaded', () => {
         break;
       case 'SCRAPE_CANCELED':
         updateStatus('Scrape cancelled.');
+        manualModeActive = false;
+        updateExportButton();
+        break;
+      case 'SCRAPE_RESULT':
+        updateStatus('Export initiated.');
         manualModeActive = false;
         updateExportButton();
         break;
