@@ -220,6 +220,11 @@ function beginManualSelection() {
       return;
     }
 
+    if (selectedElements.includes(el)) {
+      alert('You already selected this element.');
+      return;
+    }
+
     selectedElements.push(el);
     highlightElement(el);
     safeSendMessage({ type: 'ELEMENT_ADDED', count: selectedElements.length });
