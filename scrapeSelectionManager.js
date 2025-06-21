@@ -174,7 +174,6 @@ function beginManualSelection() {
     selectedElements.push(el);
     highlightElement(el);
     safeSendMessage({ type: 'ELEMENT_ADDED', count: selectedElements.length });
-    alert('Element added for export');
 
     setTimeout(() => {
       selectorTool.injectOverlay(onSelect);
