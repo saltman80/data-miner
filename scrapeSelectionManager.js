@@ -113,19 +113,51 @@ function clearHighlights() {
   }
 }
 
-function cancelManualSelection() {
-  selectorTool.removeOverlay();
-  clearHighlights();
-  selectedElements = [];
-  if (keyListener) {
-    document.removeEventListener('keydown', keyListener, true);
-    keyListener = null;
+let confirmationPopup = null;
+
+function showConfirmationPopup(onAddMore, onExportNow) {
+  if (confirmationPopup && confirmationPopup.parentNode) {
+    confirmationPopup.parentNode.removeChild(confirmationPopup);
   }
-  manualSelecting = false;
-  safeSendMessage({ type: 'SCRAPE_CANCELED' });
+  const popup = document.createElement('div');
+  popup.style.cssText = `
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background: #fff;
+    color: #000;
+    padding: 10px;
+    z-index: 2147483647;
+    border-radius: 8px;
+    box-shadow: 0 0 10px rgba(0,0,0,0.3);
+  `;
+  popup.innerHTML = `
+    <div style="margin-bottom: 8px;">Add more elements?</div>
+    <button id="addMoreBtn">Yes</button>
+    <button id="exportNowBtn">Export</button>
+  `;
+  document.body.appendChild(popup);
+
+  document.getElementById('addMoreBtn').onclick = () => {
+    if (popup.parentNode) popup.parentNode.removeChild(popup);
+    confirmationPopup = null;
+    if (typeof onAddMore === 'function') onAddMore();
+  };
+
+  document.getElementById('exportNowBtn').onclick = () => {
+    if (popup.parentNode) popup.parentNode.removeChild(popup);
+    confirmationPopup = null;
+    if (typeof onExportNow === 'function') onExportNow();
+  };
+
+  confirmationPopup = popup;
 }
 
-function finalizeManualSelection() {
+function finalizeMultiSelection() {
+  if (confirmationPopup && confirmationPopup.parentNode) {
+    confirmationPopup.parentNode.removeChild(confirmationPopup);
+    confirmationPopup = null;
+  }
   selectorTool.removeOverlay();
   if (keyListener) {
     document.removeEventListener('keydown', keyListener, true);
@@ -153,6 +185,26 @@ function finalizeManualSelection() {
   safeSendMessage({ type: 'SCRAPE_RESULT', data });
 }
 
+function cancelManualSelection() {
+  selectorTool.removeOverlay();
+  clearHighlights();
+  selectedElements = [];
+  if (confirmationPopup && confirmationPopup.parentNode) {
+    confirmationPopup.parentNode.removeChild(confirmationPopup);
+    confirmationPopup = null;
+  }
+  if (keyListener) {
+    document.removeEventListener('keydown', keyListener, true);
+    keyListener = null;
+  }
+  manualSelecting = false;
+  safeSendMessage({ type: 'SCRAPE_CANCELED' });
+}
+
+function finalizeManualSelection() {
+  finalizeMultiSelection();
+}
+
 function beginManualSelection() {
   if (manualSelecting) return;
   manualSelecting = true;
@@ -168,20 +220,14 @@ function beginManualSelection() {
       return;
     }
 
-    const url = window.location.href;
-    const text = el.textContent.trim();
-    safeSendMessage({
-      type: 'SCRAPE_RESULT',
-      data: [{ url, text }]
-    });
-
+    selectedElements.push(el);
     highlightElement(el);
+    safeSendMessage({ type: 'ELEMENT_ADDED', count: selectedElements.length });
     selectorTool.removeOverlay();
-    if (keyListener) {
-      document.removeEventListener('keydown', keyListener, true);
-      keyListener = null;
-    }
-    manualSelecting = false;
+    showConfirmationPopup(
+      () => selectorTool.injectOverlay(onSelect),
+      finalizeMultiSelection
+    );
   }
 
   keyListener = (e) => {

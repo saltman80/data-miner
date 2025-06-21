@@ -7,10 +7,10 @@ In auto mode the extension collects only `<h1>` headings from the current page a
 
 1. Load the extension in Chrome through the Extensions page in developer mode.
 2. Click the extension icon to open the popup.
-3. Choose **Auto Detect & Export** to automatically capture all `<h1>` and `<h2>` elements, or select **Select Data to Export** to manually pick elements.
+3. Choose **Auto Detect & Export** to automatically capture all `<h1>` and `<h2>` elements, or select **Select Data to Export** to manually pick elements (only `<h1>`/`<h2>` are supported).
 4. When manual selection mode is active:
-   - Focus returns to the page and the **Export to CSV** button in the popup is disabled.
-   - Simply click a single `<h1>` or `<h2>` element. It will highlight and immediately export to CSV.
-   - Press **Escape** if you want to cancel without exporting.
+   - Click a heading to add it to your selection. A small in‑page popup asks if you want to add more elements or export now.
+   - Choose **Yes** to continue selecting more headings, or **Export** to finalize and download.
+   - Press **Escape** at any time to cancel without exporting.
 
-The popup can stay open, but exporting now happens automatically after your click.
+The extension popup can stay open while you select multiple headings.
