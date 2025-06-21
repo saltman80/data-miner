@@ -4,6 +4,18 @@ document.addEventListener('DOMContentLoaded', () => {
   const exportBtn = document.getElementById('exportBtn');
   const cancelBtn = document.getElementById('cancelBtn');
   const statusDiv = document.getElementById('status');
+  let manualModeActive = false;
+
+  function updateExportButton() {
+    if (!exportBtn) return;
+    if (manualModeActive) {
+      exportBtn.disabled = true;
+      exportBtn.textContent = 'Press Enter to Export';
+    } else {
+      exportBtn.disabled = false;
+      exportBtn.textContent = 'Export to CSV';
+    }
+  }
 
   function updateStatus(message, isError = false) {
     if (!statusDiv) return;
@@ -12,9 +24,12 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function setButtonsEnabled(enabled) {
-    [autoBtn, manualBtn, exportBtn, cancelBtn].forEach(btn => {
+    [autoBtn, manualBtn, cancelBtn].forEach(btn => {
       if (btn) btn.disabled = !enabled;
     });
+    if (!manualModeActive && exportBtn) {
+      exportBtn.disabled = !enabled;
+    }
   }
 
   function sendMessage(message) {
@@ -53,6 +68,9 @@ document.addEventListener('DOMContentLoaded', () => {
       updateStatus('Entering manual selection mode...');
       console.log('popup: requesting manual scrape');
       await sendMessage({ type: 'START_SCRAPE', mode: 'manual' });
+      manualModeActive = true;
+      updateExportButton();
+      updateStatus('Manual mode: select headings then press Enter on the page.');
     } catch (err) {
       updateStatus(err.message || 'Error starting manual selection', true);
     } finally {
@@ -61,6 +79,10 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   async function handleExportClick() {
+    if (manualModeActive) {
+      updateStatus('Press Enter on the page to export.', true);
+      return;
+    }
     try {
       setButtonsEnabled(false);
       updateStatus('Exporting CSV...');
@@ -80,6 +102,8 @@ document.addEventListener('DOMContentLoaded', () => {
       updateStatus('Cancelling scrape...');
       console.log('popup: cancel requested');
       await sendMessage({ type: 'CANCEL_SCRAPE' });
+      manualModeActive = false;
+      updateExportButton();
       updateStatus('Scrape cancelled.');
     } catch (err) {
       updateStatus(err.message || 'Error cancelling scrape', true);
@@ -99,6 +123,13 @@ document.addEventListener('DOMContentLoaded', () => {
         break;
       case 'SCRAPE_ERROR':
         updateStatus(`Error: ${message.error}`, true);
+        manualModeActive = false;
+        updateExportButton();
+        break;
+      case 'SCRAPE_CANCELED':
+        updateStatus('Scrape cancelled.');
+        manualModeActive = false;
+        updateExportButton();
         break;
       case 'ELEMENT_ADDED':
         updateStatus(`Added element #${message.count} for export.`);
@@ -112,4 +143,6 @@ document.addEventListener('DOMContentLoaded', () => {
   if (cancelBtn) cancelBtn.addEventListener('click', handleCancelClick);
 
   chrome.runtime.onMessage.addListener(handleRuntimeMessage);
+
+  updateExportButton();
 });

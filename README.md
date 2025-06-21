@@ -9,7 +9,7 @@ In auto mode the extension collects only `<h1>` headings from the current page a
 2. Click the extension icon to open the popup.
 3. Choose **Auto Detect & Export** to automatically capture all `<h1>` and `<h2>` elements, or select **Select Data to Export** to manually pick elements.
 4. When manual selection mode is active:
-   - Focus returns to the page.
+   - Focus returns to the page and the **Export to CSV** button in the popup is disabled.
    - Click each `<h1>` or `<h2>` you want to export. After each click you'll see a short alert confirming the element was added.
    - Press **Enter** while still focused on the page to finalize your selection and start the CSV download.
    - Press **Escape** if you want to cancel.
