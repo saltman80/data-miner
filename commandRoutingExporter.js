@@ -20,38 +20,33 @@ function startDownload(csvContent) {
     return;
   }
 
-  const blob = new Blob([csvContent], { type: 'text/csv' });
-  let url;
-
   try {
-    url = URL.createObjectURL(blob);
-  } catch (error) {
-    console.error('Error creating object URL:', error);
-    notifyUser('Export failed: createObjectURL failed.');
-    return;
-  }
+    const encodedData = encodeURIComponent(csvContent);
+    const dataUrl = `data:text/csv;charset=utf-8,${encodedData}`;
 
-  if (chrome?.downloads?.download) {
-    chrome.downloads.download(
-      {
-        url: url,
-        filename: `export_${Date.now()}.csv`,
-        saveAs: true
-      },
-      function(downloadId) {
-        if (chrome.runtime.lastError) {
-          console.error('Download failed:', chrome.runtime.lastError);
-          notifyUser('Download failed: ' + chrome.runtime.lastError.message);
-        } else {
-          console.log('Download started, id:', downloadId);
+    if (chrome?.downloads?.download) {
+      chrome.downloads.download(
+        {
+          url: dataUrl,
+          filename: `export_${Date.now()}.csv`,
+          saveAs: true
+        },
+        function (downloadId) {
+          if (chrome.runtime.lastError) {
+            console.error('Download failed:', chrome.runtime.lastError);
+            notifyUser('Download failed: ' + chrome.runtime.lastError.message);
+          } else {
+            console.log('Download started, id:', downloadId);
+          }
         }
-        URL.revokeObjectURL(url);
-      }
-    );
-  } else {
-    console.error('chrome.downloads API is not available.');
-    notifyUser('Download API not available in this context.');
-    URL.revokeObjectURL(url);
+      );
+    } else {
+      console.error('chrome.downloads API is not available.');
+      notifyUser('Download API not available in this context.');
+    }
+  } catch (error) {
+    console.error('Error generating data URL:', error);
+    notifyUser('Export failed: Could not prepare CSV.');
   }
 }
 
