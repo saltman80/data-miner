@@ -160,14 +160,13 @@ function beginManualSelection() {
   selectionHighlights = [];
 
   function onSelect(el) {
-    if (!el || !(el instanceof Element)) {
-      alert('Invalid element selected. Try clicking on a visible element.');
-      return;
-    }
-
-    const tag = el.tagName && el.tagName.toLowerCase();
-    if (tag !== 'h1' && tag !== 'h2') {
-      alert('Please select only H1 or H2 headings.');
+    if (!el || !(el instanceof Element) || !['h1', 'h2'].includes(el.tagName.toLowerCase())) {
+      safeSendMessage({ type: 'SCRAPE_ERROR', error: 'Only H1 or H2 elements are supported.' });
+      setTimeout(() => {
+        if (manualSelecting) {
+          selectorTool.injectOverlay(onSelect);
+        }
+      }, 300);
       return;
     }
 
