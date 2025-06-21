@@ -160,32 +160,32 @@ function beginManualSelection() {
   selectionHighlights = [];
 
   function onSelect(el) {
-    if (!el || !(el instanceof Element) || !['h1', 'h2'].includes(el.tagName.toLowerCase())) {
-      safeSendMessage({ type: 'SCRAPE_ERROR', error: 'Only H1 or H2 elements are supported.' });
-      setTimeout(() => {
-        if (manualSelecting) {
-          selectorTool.injectOverlay(onSelect);
-        }
-      }, 300);
+    if (!el || !(el instanceof Element)) return;
+
+    const tag = el.tagName && el.tagName.toLowerCase();
+    if (!['h1', 'h2'].includes(tag)) {
+      alert('Only H1 or H2 elements allowed');
       return;
     }
 
-    selectedElements.push(el);
-    highlightElement(el);
-    safeSendMessage({ type: 'ELEMENT_ADDED', count: selectedElements.length });
+    const url = window.location.href;
+    const text = el.textContent.trim();
+    safeSendMessage({
+      type: 'SCRAPE_RESULT',
+      data: [{ url, text }]
+    });
 
-    setTimeout(() => {
-      if (manualSelecting) {
-        selectorTool.injectOverlay(onSelect);
-      }
-    }, 300);
+    highlightElement(el);
+    selectorTool.removeOverlay();
+    if (keyListener) {
+      document.removeEventListener('keydown', keyListener, true);
+      keyListener = null;
+    }
+    manualSelecting = false;
   }
 
   keyListener = (e) => {
-    if (e.key === 'Enter') {
-      e.preventDefault();
-      finalizeManualSelection();
-    } else if (e.key === 'Escape') {
+    if (e.key === 'Escape') {
       e.preventDefault();
       cancelManualSelection();
     }

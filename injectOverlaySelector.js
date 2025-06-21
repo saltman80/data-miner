@@ -31,7 +31,6 @@ function onMouseMove(e) {
 function onClick(e) {
   e.preventDefault();
   e.stopPropagation();
-  cleanup();
   let target = e.target;
   if (!(target instanceof Element)) {
     target = target && target.parentElement;

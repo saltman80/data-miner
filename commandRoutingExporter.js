@@ -173,6 +173,7 @@ chrome.runtime.onMessage.addListener(function(msg, sender, sendResponse) {
       notifyUser('Export failed during CSV conversion.');
     }
 
+    chrome.runtime.sendMessage({ type: 'SCRAPE_RESULT' });
     sendResponse({ ok: true });
     console.log('background: sendResponse \u2192', { ok: true });
     return true;
