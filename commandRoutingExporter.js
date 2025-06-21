@@ -4,6 +4,7 @@ function notifyUser(message) {
   if (chrome.notifications && chrome.notifications.create) {
     chrome.notifications.create({
       type: 'basic',
+      iconUrl: 'icons/icon48.png', // required field
       title: 'Data Miner',
       message: message
     });
@@ -141,18 +142,21 @@ chrome.runtime.onMessage.addListener(function(msg, sender, sendResponse) {
     dispatchScrapeToContentScript(msg.mode, undefined, result => {
       sendResponse(result);
     });
+    console.log('background: sendResponse \u2192', { ok: true });
     return true;
   } else if (msg && msg.type === 'CANCEL_SCRAPE') {
     console.log('background: CANCEL_SCRAPE received');
     dispatchScrapeToContentScript('cancel', undefined, result => {
       sendResponse(result);
     });
+    console.log('background: sendResponse \u2192', { ok: true });
     return true;
   } else if (msg && msg.type === 'EXPORT_CSV') {
     console.log('background: EXPORT_CSV received');
     dispatchScrapeToContentScript('finalize', undefined, result => {
       sendResponse(result);
     });
+    console.log('background: sendResponse \u2192', { ok: true });
     return true;
   } else if (msg && msg.type === 'SCRAPE_RESULT') {
     console.log('background: SCRAPE_RESULT received');
@@ -162,11 +166,18 @@ chrome.runtime.onMessage.addListener(function(msg, sender, sendResponse) {
       console.error('Invalid scrape data format:', msg.data);
       notifyUser('Export failed: Invalid data format.');
       sendResponse({ ok: false });
+      console.log('background: sendResponse \u2192', { ok: false });
       return true;
     }
 
     try {
       const csvContent = convertJsonToCsv(msg.data, { headers: ['url', 'text'] });
+      if (typeof csvContent !== 'string' || !csvContent.trim()) {
+        notifyUser('Export failed: CSV content is empty.');
+        sendResponse({ ok: false });
+        console.log('background: sendResponse \u2192', { ok: false });
+        return true;
+      }
       startDownload(csvContent); // must ONLY be called here
     } catch (error) {
       console.error('Error converting data to CSV:', error);
@@ -174,6 +185,7 @@ chrome.runtime.onMessage.addListener(function(msg, sender, sendResponse) {
     }
 
     sendResponse({ ok: true });
+    console.log('background: sendResponse \u2192', { ok: true });
     return true;
   } else if (
     msg &&
@@ -184,6 +196,7 @@ chrome.runtime.onMessage.addListener(function(msg, sender, sendResponse) {
     // Forward messages from content script to any extension pages (e.g., popup)
     chrome.runtime.sendMessage(msg);
     sendResponse({ ok: true });
+    console.log('background: sendResponse \u2192', { ok: true });
     return true;
   }
 });
